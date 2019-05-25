@@ -21,8 +21,6 @@ import requests
 from bs4 import BeautifulSoup
 from logzero import logger as log
 
-from musicDL.utils import const, utility
-
 
 class FakeLock(object):
     """
@@ -40,6 +38,16 @@ class FakeLock(object):
         Do nothing on exit
         """
         pass
+
+
+def bool_int(value):
+    """
+    Casts a config value into a 0 or 1
+    """
+    if isinstance(value, str):
+        if value.lower() in ('', '0', 'false', 'f', 'no', 'n', 'off'):
+            value = 0
+    return int(bool(value))
 
 
 def setproxy():
@@ -89,7 +97,7 @@ def request_response(url, method="get", auto_raise=True, add_proxies=True, white
 
     # Disable verification of SSL certificates if requested. Note: this could
     # pose a security issue!
-    VERIFY_SSL_CERT = (utility.bool_int, 'Advanced', 1)
+    VERIFY_SSL_CERT = (bool_int, 'Advanced', 1)
     kwargs["verify"] = bool(VERIFY_SSL_CERT)
 
     # This fix is put in place for systems with broken SSL (like QNAP)
@@ -157,10 +165,6 @@ def request_response(url, method="get", auto_raise=True, add_proxies=True, white
 
             log.exception(
                 f"Request raise HTTP error with status code {e.response.status_code} ({cause}).")
-
-            # Debug response
-            # if not const.args.verbose:
-            #     server_message(e.response)
         else:
             log.error("Request raised HTTP error.")
     except requests.RequestException as e:
@@ -201,10 +205,6 @@ def request_json(url, **kwargs):
                 return result
         except ValueError:
             log.error("Response returned invalid JSON data")
-
-            # Debug response
-            # if const.args.verbose:
-            #     server_message(response)
 
 
 def request_content(url, **kwargs):
